@@ -29,14 +29,61 @@ app.use(express.urlencoded({ extended: true }));
 app.use('/uploads'  , express.static(path.join(__dirname , 'uploads'))) ;
 
 const port = 4000;
+const ObjectId = require('mongodb').ObjectId;
 
-const Users = mongoose.model('Users', { username: String, password: String });
+const Users = mongoose.model('Users', 
+                             { username: String, 
+                                password: String ,
+                                likeProducts : [{type : mongoose.Schema.Types.ObjectId , ref :'Products'}]
+                            });
 const Products = mongoose.model('Products', { pname: String, pdesc: String , pprice: String, ptype: String , pimage : String });
 
 
 app.get('/', (req, res) => {
     res.send('Hello World!');
 });
+
+app.post('/like-products/' , (req , res) =>  {
+      
+     console.log(req.body) ;
+     const userId = req.body.userId  ;
+     const productId = req.body.productId ;
+      
+
+     
+     Users.updateOne({_id : new ObjectId(userId)} , {$addToSet : {likeProducts : productId}})
+     .then(() => {
+
+        res.send({ message: "Liked Successfully." , userId :userId ,productId:productId });
+     })
+     .catch((err) => {
+         res.send({ message: "Server erro r", error: err });
+     });
+})
+
+
+app.get('/get-likeProducts:userId' , (req , res) => {
+    let userId = (req.params.userId).substring(1);
+   
+  
+  Users.findOne({ _id: userId }).populate('likeProducts')
+    .then((result) => {
+      if (result) {
+        
+        res.send({ likeProducts: result.likeProducts});
+      } else {
+        
+        res.status(404).send({ message: 'User not found' });
+      }
+    })
+    .catch((error) => {
+      console.error(error);
+      res.status(500).send("Error occurred");
+    });
+
+
+
+})
 
 app.post('/signup', (req, res) => {
     
@@ -63,7 +110,7 @@ app.post('/login', (req, res) => {
  
     Users.findOne({username : userN})
         .then((result) => {
-            console.log(result , "user data") ;
+            // console.log(result , "user data") ;
             
             
             if(!result) {
@@ -74,7 +121,9 @@ app.post('/login', (req, res) => {
                     const token = jwt.sign({
                         data: result
                     }, 'MYKEY', { expiresIn: '1h' });
-                    res.send({message : "Login Sucessful!!" , token : token}) ;
+
+                    const userId = result._id ;
+                    res.send({message : "Login Sucessful!!" , token : token , userId : userId}) ;
                 }
                 if(result.password != pass) {
                     res.send({message : "Wrong Password!!"}) ;
@@ -112,8 +161,9 @@ app.post('/add-product',upload.single('pimage'), (req, res) => {
 });
 
 app.get('/get-products' , (req, res) =>{
-       
-    Products.find()
+      
+   
+     Products.find()
     .then((result) =>{
           res.send({message :"sucess" , products : result}) ;
     })
