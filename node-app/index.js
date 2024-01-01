@@ -45,7 +45,7 @@ app.get('/', (req, res) => {
 
 app.post('/like-products/' , (req , res) =>  {
       
-     console.log(req.body) ;
+    //  console.log(req.body) ;
      const userId = req.body.userId  ;
      const productId = req.body.productId ;
       
@@ -59,6 +59,52 @@ app.post('/like-products/' , (req , res) =>  {
      .catch((err) => {
          res.send({ message: "Server erro r", error: err });
      });
+})
+
+
+app.get('/get-productDetail:userId' , (req , res) => {
+    let userId = (req.params.userId).substring(1);
+   
+  
+    Products.findOne({ _id: userId })
+    .then((result) => {
+    
+        
+        res.send({message :"sucess" , products : result});
+      
+    })
+    .catch((error) => {
+      console.error(error);
+      res.status(500).send("Error occurred");
+    });
+
+
+
+})
+
+app.get('/search', (req , res) => {
+    let search = req.query.search;
+  
+    Products.find({
+        $or: [
+            { pname: { $regex: search } },
+            { pdesc: { $regex: search } },
+            { pprice: { $regex: search } },
+            { ptype: { $regex: search } } ,
+        ]
+    })
+        .then((results) => {
+           
+              res.send({ message: "sucess", products: results });
+
+        })
+        .catch((error) => {
+           
+            res.status(500).send("Error occurred");
+        });
+
+
+
 })
 
 
@@ -85,6 +131,9 @@ app.get('/get-likeProducts:userId' , (req , res) => {
 
 })
 
+
+
+
 app.post('/signup', (req, res) => {
     
     const userN = req.body.username;
@@ -103,7 +152,7 @@ app.post('/signup', (req, res) => {
 
 app.post('/login', (req, res) => {
     
-    console.log(req.body) ;
+    // console.log(req.body) ;
     const userN = req.body.username;
     const pass = req.body.password;
    
