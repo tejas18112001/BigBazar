@@ -34,9 +34,19 @@ const ObjectId = require('mongodb').ObjectId;
 const Users = mongoose.model('Users', 
                              { username: String, 
                                 password: String ,
+                                email : String ,
+                                mobile : String ,
                                 likeProducts : [{type : mongoose.Schema.Types.ObjectId , ref :'Products'}]
                             });
-const Products = mongoose.model('Products', { pname: String, pdesc: String , pprice: String, ptype: String , pimage : String });
+const Products = mongoose.model('Products', { 
+                    pname: String, 
+                    pdesc: String , 
+                    pprice: String, 
+                    ptype: String , 
+                    pimage : String ,
+                    addedBy : mongoose.Schema.Types.ObjectId 
+                
+                });
 
 
 app.get('/', (req, res) => {
@@ -135,10 +145,12 @@ app.get('/get-likeProducts:userId' , (req , res) => {
 
 
 app.post('/signup', (req, res) => {
-    
+    console.log(req.body) ;
     const userN = req.body.username;
     const pass = req.body.password;
-    const user = new Users({ username: userN, password: pass });
+    const email = req.body.email ;
+    const mobile = req.body.mobile ;
+    const user = new Users({ username: userN, password: pass  , email , mobile});
    
     user.save()
         .then(() => {
@@ -196,8 +208,9 @@ app.post('/add-product',upload.single('pimage'), (req, res) => {
     const pprice = req.body.pprice;
     const ptype = req.body.ptype;
     const pimage = req.file.path;
-    const product = new Products({ pname, pdesc , pprice , ptype, pimage });
-   
+    const addedBy = req.body.userId ;
+    const product = new Products({ pname, pdesc , pprice , ptype, pimage  ,addedBy});
+ 
     product.save()
         .then(() => {
            res.send({ message: "Saved Successfully." });
@@ -222,6 +235,19 @@ app.get('/get-products' , (req, res) =>{
 })
     
 
+app.get('/get-contact/:uId' , (req, res) =>{
+      
+    const userId = req.params.uId ;
+    console.log(userId) ;
+    Users.findOne({_id:userId})
+    .then((result) =>{
+         res.send({message :"sucess" , user : result}) ;
+   })
+    .catch(()=>{
+       res.send("Error occured")
+    })
+})
+  
 
 app.listen(port, () => {
     console.log(`Example app listening on port ${port}`);
