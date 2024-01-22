@@ -4,11 +4,17 @@ const mongoose = require('mongoose');
 const cors = require('cors');
 const jwt = require('jsonwebtoken');
 const path = require('path') ;
+const multer  = require('multer')
+const { Users, Products } = require('./model/Database'); 
+
+
+
 const uri = process.env.DATABASE_URI ;
 mongoose.connect(uri)
     .then(() => console.log('Connected!'));
 
-const multer  = require('multer')
+
+
 const storage = multer.diskStorage({
     destination: function (req, file, cb) {
       cb(null, 'uploads')
@@ -30,23 +36,6 @@ app.use('/uploads'  , express.static(path.join(__dirname , 'uploads'))) ;
 
 const port = 4000;
 const ObjectId = require('mongodb').ObjectId;
-
-const Users = mongoose.model('Users', 
-                             {  username: String, 
-                                password: String ,
-                                email :   String ,
-                                mobile :  String ,
-                                likeProducts : [{type : mongoose.Schema.Types.ObjectId , ref :'Products'}]
-                            });
-const Products = mongoose.model('Products', { 
-                    pname: String, 
-                    pdesc: String , 
-                    pprice: String, 
-                    ptype: String , 
-                    pimage : String ,
-                    addedBy : mongoose.Schema.Types.ObjectId 
-                
-                });
 
 
 app.get('/', (req, res) => {
