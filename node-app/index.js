@@ -1,12 +1,12 @@
-
+require('dotenv').config() ;
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
 const jwt = require('jsonwebtoken');
 const path = require('path') ;
-mongoose.connect('mongodb+srv://tejasraut461:Tejas%40123@cluster0.uiwnzmf.mongodb.net/')
+const uri = process.env.DATABASE_URI ;
+mongoose.connect(uri)
     .then(() => console.log('Connected!'));
-
 
 const multer  = require('multer')
 const storage = multer.diskStorage({
@@ -32,10 +32,10 @@ const port = 4000;
 const ObjectId = require('mongodb').ObjectId;
 
 const Users = mongoose.model('Users', 
-                             { username: String, 
+                             {  username: String, 
                                 password: String ,
-                                email : String ,
-                                mobile : String ,
+                                email :   String ,
+                                mobile :  String ,
                                 likeProducts : [{type : mongoose.Schema.Types.ObjectId , ref :'Products'}]
                             });
 const Products = mongoose.model('Products', { 
@@ -145,12 +145,16 @@ app.get('/get-likeProducts:userId' , (req , res) => {
 
 
 app.post('/signup', (req, res) => {
-    console.log(req.body) ;
+   
     const userN = req.body.username;
     const pass = req.body.password;
-    const email = req.body.email ;
-    const mobile = req.body.mobile ;
-    const user = new Users({ username: userN, password: pass  , email , mobile});
+    const Email = req.body.email ;
+    const Mobile = req.body.mobile ;
+    
+    console.log("Email : " ,Email) ;
+    console.log("Mobile : " , Mobile) ;
+
+    const user = new Users({ username: userN, password: pass  , email : Email , mobile : Mobile});
    
     user.save()
         .then(() => {
@@ -210,7 +214,7 @@ app.post('/add-product',upload.single('pimage'), (req, res) => {
     const pimage = req.file.path;
     const addedBy = req.body.userId ;
     const product = new Products({ pname, pdesc , pprice , ptype, pimage  ,addedBy});
- 
+    console.log(addedBy) ;
     product.save()
         .then(() => {
            res.send({ message: "Saved Successfully." });
@@ -218,7 +222,7 @@ app.post('/add-product',upload.single('pimage'), (req, res) => {
         .catch((err) => {
             res.send({ message: "Server error", error: err });
         });
-    return  ;
+    
    
 });
 
